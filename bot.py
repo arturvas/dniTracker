@@ -10,7 +10,7 @@ load_dotenv()
 TOKEN = os.getenv("TELEGRAM_TOKEN")
 CHAT_ID = os.getenv("CHAT_ID")
 BASE_URL = "https://www.migraciones.gob.ar/accesible/consultaTramitePrecaria/ConsultaUnificada.php"
-API_URL = "https://www.migraciones.gob.ar/accesible/consultaTramitePrecaria/ajax_consulta_tramite.php"
+API_URL = "https://www.migraciones.gob.ar/accesible/consultaTramitePrecaria/api/ajax_consulta_tramite.php"
 
 bot = telebot.TeleBot(TOKEN)
 ultimo_status_salvo = ""
@@ -33,27 +33,37 @@ def verificar_status():
     }
     
     try:
-        response = requests.post(API_URL, data=payload, timeout=15)
-        res_json = response.json()        
-        
-        if "data" in res_json and len(res_json["data"]) > 0:
-            passo_atual = res_json["data"][-1]
-            status_texto = passo_atual["DESCRIPCION"]
+        response = requests.post(API_URL, data=payload,headers=headers, timeout=15)
+        res_json = response.json()
 
-            print(f"[{time.strftime('%H:%M:%S')}] Status: {status_texto}")
+        if response.status_code != 200:
+            print(f"Erro no servidor: {response.status_code}")
+            return
+        
+        res_json = response.json()
+
+        # verifica se tem dados na respota
+        if "data" in res_json and len(res_json["data"]) > 0:
+            
+            passo_ativo = next((item for item in res_json["data"] if item["RESUELTO"] == "f"), res_json["data"][-1]) 
+            
+            status_texto = passo_ativo["DESCRIPCION"]
+            print(f"[{time.strftime('%H:%M:%S')}] Status atual: {status_texto}")
 
             if status_texto != ultimo_status_salvo:
+                nome_completo = res_json['datos_persona']['nombres']
+                vencimento = res_json['datos_persona']['fecha_vencimiento_precaria']
+
                 mensagem = (
                     f"**ATUALIZAÇÃO NO DNI**\n\n"
-                    f"**Nome:** {res_json['datos_persona']['nombres']}\n"
+                    f"**Nome:** {nome_completo}\n"
                     f"**Status:** {status_texto}\n"
-                    f"**Vencimento Precaria:** {res_json['datos_persona']['fecha_vencimiento_precaria']}"
+                    f"**Vencimento Precaria:** {vencimento}"
                 )
                 bot.send_message(CHAT_ID, mensagem, parse_mode="Markdown")
                 ultimo_status_salvo = status_texto
-
         else:
-            print("Erro: Estrutura de dados não encontrada na resposta.")
+            print("Aviso: Dados ainda não disponíveis ou CPF/Data incorretos.")
             
     except Exception as e:
         print(f"Erro na verificação: {e}")

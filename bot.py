@@ -70,6 +70,4 @@ def verificar_status():
 
 if __name__ == "__main__":
     print("Monitoramento iniciado via API...")
-    while True:
-        verificar_status()
-        time.sleep(3600)
+    verificar_status()

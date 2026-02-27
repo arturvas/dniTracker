@@ -86,14 +86,13 @@ def verificar_status():
                     emoji = "😴" if index == len(ultimos_passos) - 1 else "👨🏻‍💻"
                 historico_texto += f"{emoji} {passo['DESCRIPCION']}\n"
 
-            nome_completo = res_json['datos_persona']['nombres']
+            primeiro_nome = res_json['datos_persona']['nombres']
             vencimento = res_json['datos_persona']['fecha_vencimiento_precaria']
 
             mensagem = (
-                f"**DNI update** 🇦🇷\n\n"
+                f"**DNI update** {primeiro_nome} 🇦🇷\n\n"
                 f"**Histórico Recente:**\n"
                 f"{historico_texto}\n\n"
-                f"**Nome:** {nome_completo}\n"
                 f"**Vencimento Precaria:** {vencimento}"
             )
             

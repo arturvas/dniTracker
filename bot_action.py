@@ -43,19 +43,29 @@ def verificar_status():
         res_json = response.json()
 
         if "data" in res_json and len(res_json["data"]) > 0:
-            passo_ativo = next((item for item in res_json["data"] if item["RESUELTO"] == "f"), res_json["data"][-1]) 
-            
-            status_texto = passo_ativo["DESCRIPCION"]
-            print(f"Status detectado: {status_texto}")
-            
+            ultimos_passos = res_json["data"][-4:]
+            historico_texto = ""
+
+            for index, passo in enumerate(ultimos_passos):
+                if passo["RESUELTO"] == "t":
+                    emoji = "👌🏻"
+                else:
+                    if index == len(ultimos_passos) - 1:
+                        emoji = "😴"
+                    else:
+                        emoji = "👨🏻‍💻"
+
+                historico_texto += f"{emoji} {passo['DESCRIPCION']}\n"
+
             nome_completo = res_json['datos_persona']['nombres']
             vencimento = res_json['datos_persona']['fecha_vencimiento_precaria']
 
             mensagem = (
                 f"**RASTREADOR DNI**\n\n"
                 f"**Nome:** {nome_completo}\n"
-                f"**Status Atual:** {status_texto}\n"
-                f"**Vencimento Precaria:** {vencimento}"
+                f"**Vencimento Precaria:** {vencimento}\n\n"
+                f"**Histórico Recente:**\n"
+                f"{historico_texto}"
             )
             
             bot.send_message(int(CHAT_ID), mensagem, parse_mode="Markdown")

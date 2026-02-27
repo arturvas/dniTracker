@@ -1,16 +1,17 @@
-# DNI Tracker 
-Bot simples em python pra monitorar o status do tramite de residencia na Argentina (migraciones) e enviar notificações via Telegram.
+# DNI Status Tracker
+Sistema automatizado de monitoramento e notificações para trâmites de residência (Argentina).
 
-## O script consome a API interna da Migraciones:
-Faz um POST com os dados do expediente e data de nascimento
+Este projeto demonstra a implementação de um fluxo de automação completo, focado em eficiência de notificações e persistência de estado.
 
-Identifica o passo atual
+## Tecnologias e Conceitos
+- **Python:** Lógica principal e consumo de APIs REST.
+- **GitHub Actions:** Orquestração de tarefas agendadas (Cron) e automação de workflow.
+- **Telegram Bot API:** Entrega de notificações em tempo real.
+- **Gerenciamento de Estado:** Persistência de dados em JSON para detecção de mudanças e prevenção de notificações duplicadas.
 
-Notifica via bot do Telegram
+## Diferenciais Técnicos
+- **Notificações Inteligentes:** O sistema compara o estado atual com o último estado salvo, disparando alertas apenas quando uma alteração real é detectada no servidor de origem.
+- **Auto-Persistência:** O workflow do GitHub Actions é capaz de atualizar o próprio repositório com o estado mais recente, garantindo continuidade sem necessidade de um banco de dados externo.
 
-## Setup local
-Instale as dependencias `pip install -r requirements.txt`
-
-Crie um .env baseado nas suas credenciais (Numero Expediente, Data de nascimento, bot token, e chat id)
-
-rode `python bot.py`
+---
+*Projeto desenvolvido para fins de demonstração técnica.*

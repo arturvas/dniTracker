@@ -2,6 +2,7 @@ import os
 import requests
 import telebot
 import json
+from hashlib import md5
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -12,11 +13,22 @@ EXPEDIENTE = os.getenv("EXPEDIENTE")
 DIA = os.getenv("DIA")
 MES = os.getenv("MES")
 ANIO = os.getenv("ANIO")
+STATUS_FILE = "last_status.json"
 
 API_URL = "https://www.migraciones.gob.ar/accesible/consultaTramitePrecaria/api/ajax_consulta_tramite.php"
 BASE_URL = "https://www.migraciones.gob.ar/accesible/consultaTramitePrecaria/ConsultaUnificada.php"
 
 bot = telebot.TeleBot(TOKEN)
+
+def get_last_status():
+    if os.path.exists(STATUS_FILE):
+        with open(STATUS_FILE, "r") as f:
+            return json.load(f)
+    return {}
+
+def save_status(status_data):
+    with open(STATUS_FILE, "w") as f:
+        json.dump(status_data, f, indent=4)
 
 def verificar_status():
     payload = {
@@ -44,32 +56,40 @@ def verificar_status():
 
         if "data" in res_json and len(res_json["data"]) > 0:
             ultimos_passos = res_json["data"][-4:]
-            historico_texto = ""
+            
+            # Criar um hash ou string única baseada nos dados importantes
+            status_atual = {
+                "nome": res_json['datos_persona']['nombres'],
+                "vencimento": res_json['datos_persona']['fecha_vencimiento_precaria'],
+                "historico": [p["DESCRIPCION"] for p in ultimos_passos]
+            }
+            
+            last_status = get_last_status()
 
+            # Compara o status atual com o último salvo
+            if status_atual == last_status:
+                print("Sem alterações no status. Notificação não enviada.")
+                return
+
+            historico_texto = ""
             for index, passo in enumerate(ultimos_passos):
                 if passo["RESUELTO"] == "t":
                     emoji = "👌🏻"
                 else:
-                    if index == len(ultimos_passos) - 1:
-                        emoji = "😴"
-                    else:
-                        emoji = "👨🏻‍💻"
-
+                    emoji = "😴" if index == len(ultimos_passos) - 1 else "👨🏻‍💻"
                 historico_texto += f"{emoji} {passo['DESCRIPCION']}\n"
 
-            nome_completo = res_json['datos_persona']['nombres']
-            vencimento = res_json['datos_persona']['fecha_vencimiento_precaria']
-
             mensagem = (
-                f"**RASTREADOR DNI**\n\n"
-                f"**Nome:** {nome_completo}\n"
-                f"**Vencimento Precaria:** {vencimento}\n\n"
+                f"**ATUALIZAÇÃO RASTREADOR DNI**\n\n"
+                f"**Nome:** {status_atual['nome']}\n"
                 f"**Histórico Recente:**\n"
-                f"{historico_texto}"
+                f"{historico_texto}\n\n"
+                f"**Vencimento Precaria:** {status_atual['vencimento']}"
             )
             
             bot.send_message(int(CHAT_ID), mensagem, parse_mode="Markdown")
-            print("Mensagem enviada com sucesso!")
+            save_status(status_atual)
+            print("Update!")
         else:
             print("Aviso: Dados ainda não disponíveis ou credenciais incorretas.")
             

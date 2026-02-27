@@ -81,9 +81,9 @@ def verificar_status():
             historico_texto = ""
             for index, passo in enumerate(ultimos_passos):
                 if passo["RESUELTO"] == "t":
-                    emoji = "👌🏻"
+                    emoji = "☑️"
                 else:
-                    emoji = "😴" if index == len(ultimos_passos) - 1 else "👨🏻‍💻"
+                    emoji = "🔒" if index == len(ultimos_passos) - 1 else "⏳"
                 historico_texto += f"{emoji} {passo['DESCRIPCION']}\n"
 
             primeiro_nome = res_json['datos_persona']['nombres']

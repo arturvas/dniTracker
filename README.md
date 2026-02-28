@@ -13,5 +13,6 @@ Este projeto demonstra a implementação de um fluxo de automação completo, fo
 - **Notificações Inteligentes:** O sistema compara o estado atual com o último estado salvo, disparando alertas apenas quando uma alteração real é detectada no servidor de origem.
 - **Auto-Persistência:** O workflow do GitHub Actions é capaz de atualizar o próprio repositório com o estado mais recente, garantindo continuidade sem necessidade de um banco de dados externo.
 
----
-*Projeto desenvolvido para fins de demonstração técnica.*
+## Quer usar tbm?
+
+>To preparando o passo a passo

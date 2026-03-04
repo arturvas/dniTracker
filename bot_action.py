@@ -3,6 +3,7 @@ import requests
 import telebot
 import json
 import hashlib
+import re
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -19,6 +20,10 @@ API_URL = "https://www.migraciones.gob.ar/accesible/consultaTramitePrecaria/api/
 BASE_URL = "https://www.migraciones.gob.ar/accesible/consultaTramitePrecaria/ConsultaUnificada.php"
 
 bot = telebot.TeleBot(TOKEN)
+
+def sanitize_description(desc):
+    """Remove o prefixo de data como 'DD/MM/YYYY: ' apenas para comparação."""
+    return re.sub(r'^\d{2}/\d{2}/\d{4}:\s*', '', desc)
 
 def get_last_hash():
     if os.path.exists(STATUS_FILE):
@@ -65,17 +70,17 @@ def verificar_status():
         if "data" in res_json and len(res_json["data"]) > 0:
             ultimos_passos = res_json["data"][-3:]
             
-            status_atual_data = {
+            status_para_hash = {
                 "nome": res_json['datos_persona']['nombres'],
                 "vencimento": res_json['datos_persona']['fecha_vencimiento_precaria'],
-                "historico": [p["DESCRIPCION"] for p in ultimos_passos]
+                "historico": [sanitize_description(p["DESCRIPCION"]) for p in ultimos_passos]
             }
             
-            current_hash = generate_hash(status_atual_data)
+            current_hash = generate_hash(status_para_hash)
             last_hash = get_last_hash()
 
             if current_hash == last_hash:
-                print("Sem alterações no status (Hash idêntico).")
+                print("Sem alterações reais no status.")
                 return
 
             historico_texto = ""
@@ -98,7 +103,7 @@ def verificar_status():
             
             bot.send_message(int(CHAT_ID), mensagem, parse_mode="Markdown")
             save_hash(current_hash)
-            print(f"Atualização detectada! Novo Hash: {current_hash[:10]}...")
+            print(f"Atualização real detectada! Novo Hash: {current_hash[:10]}...")
         else:
             print("Aviso: Dados ainda não disponíveis ou credenciais incorretas.")
             

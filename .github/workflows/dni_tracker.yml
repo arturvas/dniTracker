@@ -3,8 +3,8 @@ name: DNI Status Tracker
 on:
   push:
     branches: [ main ]
-  schedule:
-    - cron: '0 * * * *'
+  # schedule:
+    # - cron: '0 * * * *'
 
 permissions:
   contents: write
